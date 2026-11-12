@@ -1,7 +1,7 @@
 // Bump this string whenever you want to force a fresh precache
-const CACHE = 'mru-soccer-v4';
+const CACHE = 'soccer-stats-v5';
 const PAGE = './index.html';
-const ASSETS = ['./', PAGE];
+const ASSETS = ['./', PAGE, './manifest.webmanifest', './icon-192-v2.png', './icon-512-v2.png', './apple-touch-icon-v2.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
@@ -11,7 +11,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && /^(mru-soccer-|soccer-stats-)/.test(k)).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -23,7 +23,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
   // Icons and the manifest always go straight to the network (only needed at install time)
-  if (/apple-touch-icon|icon-\d+|manifest/.test(url.pathname)) return;
+
 
   event.respondWith(
     caches.match(req, { ignoreSearch: true }).then((cached) => {

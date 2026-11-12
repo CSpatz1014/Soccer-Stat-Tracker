@@ -1,7 +1,7 @@
 {
-  "name": "MRU Boys Varsity Soccer Stat Tracker",
-  "short_name": "MRU Soccer",
-  "description": "Offline match stat tracker for Mill River Union Boys Varsity Soccer",
+  "name": "Soccer Stat Tracker",
+  "short_name": "Soccer Stats",
+  "description": "Offline soccer stats for your team, with high school match timing and configurable overtime.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

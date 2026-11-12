@@ -1,105 +1,57 @@
-# MRU Boys Varsity Soccer Stat Tracker
+# Soccer Stat Tracker
 
-An offline-first match stat tracker for Mill River Union Boys Varsity Soccer, built as a single-page web app and installable on an iPhone home screen.
+An offline-capable soccer PWA for any team. No build step or account required.
 
-**Live app:** https://cspatz1014.github.io/MRU-Soccer/
+## Update your GitHub Pages app
 
-## Features
+1. Export a JSON backup from your existing tracker before updating.
+2. Extract this ZIP and upload the **contents** of its folder to the same location in your GitHub repository, replacing the existing files. Commit the changes.
+3. Once GitHub Pages has deployed, open the app online and reload it to activate the updated offline cache. Close and reopen the installed app if necessary.
+4. Tap the pencil beside the heading to set your team name.
 
-### Live match logging
-- Match clock that counts down from 40:00 per half, with Start, 2nd Half and Reset controls
-- The clock is anchored to wall-clock time, so it stays accurate when the phone locks
-- Screen Wake Lock keeps the display on during a match
-- Every stat is tied to a player and stamped with the clock time
-- Match timeline showing every logged event, with notes per game
+Keep the same site address/browser to retain local data. This version preserves the original `mru_soccer_v3` storage key and internal stat identifiers for compatibility. Existing JSON backups still import. If you move to a new domain or browser, restore your exported backup. Installed home-screen names/icons may require removing and re-adding the shortcut; export your data first.
 
-### Stats tracked (MRU and opponent)
-- Goals, assists, penalty kicks scored and missed
-- Own goals (credited to the other team on the scoreboard)
-- Shots, shots on target, corners, offsides
-- Saves (MRU goalkeepers)
-- Direct and indirect kicks
-- Fouls, with a required type: foul, dangerous play or handball
-- Yellow and red cards, each with a required typed reason (up to 140 characters)
-- The score updates automatically when a goal, scored PK or own goal is logged
+The manifest uses the generic name **Soccer Stats**; your chosen name appears inside the app, in saved game details and in exports. Renaming changes the current team, not the roster or a separate team account. Newly saved games retain the name used when saved. Older records without a team name display the current name.
 
-### Rosters and seasons
-- Season roster with jersey number, name and position (GK, DEF, MID, FWD, FLOAT)
-- Opponent player tracking per game
-- Opponent roster import from a camera photo:
-  - **Scan Text:** use the iOS Scan Text button on the keyboard
-  - **Shortcut:** run a Shortcuts automation that uses Apple Intelligence (requires iOS 26 or later), then paste from the clipboard
-- Tabs for Log game, Players, History, All-time and Export
+## Timing
 
-### Export and backup
-| Export | File name |
-| --- | --- |
-| Last game (score, team stats, events, player stats) | `MRU_vs_<opponent>_<date>.xlsx` |
-| All games, one row per game | `MRU_all_games.xlsx` |
-| Player season totals | `MRU_player_season_totals.xlsx` |
-| All-time team summary | `MRU_season_summary.xlsx` |
-| Full backup of all data including roster | `MRU_soccer_backup_<date>.json` |
+- Regulation defaults to two 40-minute halves with a countdown to zero.
+- Start/Pause follows the referee's signals. Logging a stat does not automatically pause regulation timing: an entry may be made after play has restarted.
+- Use **Set time** to match the referee's remaining time. It pauses the clock before making the correction.
+- **2nd Half / Overtime / OT 2 / Full Time** advances manually. Each new period starts paused. Advancing early asks for confirmation.
+- At 0:00, the clock stops. Complete any penalty kick that extends the period before advancing. There is no added stoppage time.
+- Normally allow 10 minutes at halftime, 5 before overtime and 2 between overtime periods. The app does not time these breaks.
+- Saving a game resets the clock to 40:00 in the first half.
+- Event minutes continue through overtime (80–90 for OT 1, 90–100 for OT 2 with ten-minute periods). Event lists and Excel exports identify the period.
 
-Use **Restore from backup** in the Export tab to load a saved `.json` file.
+### Overtime is a state-association decision
 
-### Appearance
-- Apple Liquid Glass look
-- Follows the system light or dark setting automatically
+There is no single mandatory national overtime format. In **Timing & overtime settings**, choose:
 
-## Install on iPhone
+- None (default): end after regulation.
+- Two full overtime periods: both are played even when a team scores.
+- Two sudden-victory periods: logging a goal, scored penalty, or own goal ends the match during overtime.
 
-1. Open the live app URL in Safari.
-2. Load the page once while online, then reload it once so the offline files are saved.
-3. Tap Share, then **Add to Home Screen**.
-4. Open the app from the home screen.
+The overtime period length defaults to 10 minutes. Regular-season/preseason games cannot start overtime with periods longer than 10 minutes. For an authorized postseason format, select a playoff game type and set up to 15 minutes per period. Match your state association's rules before play. Overtime is offered after regulation only with a tied score.
 
-## Offline support
+This implementation supports **two** overtime periods; it does not implement every state's postseason procedure, four-quarter regulation, or a separate penalty-shootout tracker. Do not log shootout kicks as ordinary match goals. If a sudden-victory goal is removed as a correction, use **Set time** to reopen the period at the referee's time.
 
-A service worker (`sw.js`) caches the app page after the first visit, so the app opens with no signal. When you are online, it refreshes its saved copy in the background. A new version appears the next time you launch the app after an online visit, never in the middle of a match.
+NFHS references checked November 11, 2026:
+- https://www.nfhs.org/sports/soccer/rules
+- https://assets.nfhs.org/umbraco/media/7213076/2024-25-soccer-guide-final.pdf (Rule 7 comparison: regulation and state overtime authority)
+- https://nfhs.org/resources/sports/soccer-points-of-emphasis-2026-27
+- https://www.mhsaa.com/sports/boys-soccer/stories/be-referee-soccer-timing
 
-Match data is stored on the device in `localStorage`. It does not need a connection and is never sent anywhere.
+## Existing features retained
 
-## Data safety
+Player roster, individual and opponent stats, match events, game history, preseason/regular-season/playoff categories, postseason records, season totals, Excel export, JSON backup/restore and offline support.
 
-- iOS can clear stored data if the phone runs very low on storage. Export a full backup (`.json`) after every game or at least every week.
-- The installed home screen app and Safari keep **separate** storage. Data entered in a Safari tab will not appear in the home screen app.
-- Deleting the home screen app deletes its data. Back up first.
-- Clear all data in the Export tab cannot be undone.
+Saved games and roster are stored locally. As in the original version, an **unsaved match and its clock are held in memory**: save before closing or reloading. Background timer throttling is handled using wall-clock timestamps, but refreshing the app starts a new clock. This is a tracking aid; follow the referee's official time.
 
-## Project files
+## Files
 
-| File | Purpose |
-| --- | --- |
-| `index.html` | The whole app: HTML, CSS, JavaScript and the embedded SheetJS library |
-| `sw.js` | Service worker for offline use |
-| `manifest.webmanifest` | Web app manifest (name, display mode, icons) |
-| `apple-touch-icon-v2.png` | 180 px home screen icon source |
-| `icon-192-v2.png`, `icon-512-v2.png` | Manifest icons |
-| `README.md` | This file |
+`index.html` contains the application and bundled spreadsheet exporter. `manifest.webmanifest`, `sw.js` and the PNG icons provide PWA installation/offline behavior. Serve over HTTPS (GitHub Pages works) or localhost. Opening the HTML directly does not install the service worker.
 
-The older unversioned icon files (`apple-touch-icon.png`, `icon-192.png`, `icon-512.png`) are no longer used and can be deleted.
+## Validation
 
-## Tech stack
-
-- Plain HTML, CSS and JavaScript in one file, with no build step
-- SheetJS, embedded inline, for Excel export (no CDN dependency, so it works offline)
-- `localStorage` for data
-- Service Worker, Web App Manifest and Screen Wake Lock APIs
-- Hosted on GitHub Pages
-
-## Deploying updates
-
-1. Edit `index.html` and commit it to the repository.
-2. If you add or rename files that must work offline, update the cache list in `sw.js`.
-3. To force every device to refresh its saved copy, change the cache name in `sw.js` (currently `mru-soccer-v4`) to the next number.
-4. Open the app online once to pick up the new version, then relaunch it.
-
-### Changing the home screen icon
-
-iOS caches home screen icons by file name and can keep showing an old one. The 180 px icon is embedded directly in the `<head>` of `index.html` as a data URI to avoid this. To change it, replace that data URI, and give any icon files a new name (for example `-v3`).
-
-## Troubleshooting
-
-- **Shows a letter instead of the logo:** delete the home screen app, open the URL in a Private Safari tab, add it again, then restart the phone if needed.
-- **App does not open offline:** open it online once, reload, then test again in airplane mode. Check that `sw.js` and `index.html` are in the same folder.
-- **Old version still showing:** open the app online, close it fully, and relaunch.
+JavaScript syntax check and automated logic checks passed for initialization, team-name persistence, countdown expiry, regulation and overtime transitions, continuous event minutes, sudden victory, saved team identity, new-game clock reset, no-overtime full time and untied regulation completion. Browser rendering could not be verified in the editing environment.
