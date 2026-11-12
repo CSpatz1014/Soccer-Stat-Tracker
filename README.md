@@ -7,7 +7,7 @@ An offline-capable soccer PWA for any team. No build step or account required.
 1. Export a JSON backup from your existing tracker before updating.
 2. Extract this ZIP and upload the **contents** of its folder to the same location in your GitHub repository, replacing the existing files. Commit the changes.
 3. Once GitHub Pages has deployed, open the app online and reload it to activate the updated offline cache. Close and reopen the installed app if necessary.
-4. Tap the pencil beside the heading to set your team name.
+4. Tap the pencil beside the heading to set your team name. 
 
 Keep the same site address/browser to retain local data. This version preserves the original `mru_soccer_v3` storage key and internal stat identifiers for compatibility. Existing JSON backups still import. If you move to a new domain or browser, restore your exported backup. Installed home-screen names/icons may require removing and re-adding the shortcut; export your data first.
 
