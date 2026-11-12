@@ -621,6 +621,7 @@ body::before{
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
         <button class="btn" style="margin-top:0;height:38px;font-size:13px" onclick="openEvt('opp_shot')">Shot</button>
         <button class="btn" style="margin-top:0;height:38px;font-size:13px" onclick="openEvt('opp_sot')">Shot on Target</button>
+        <button class="btn" style="margin-top:0;height:38px;font-size:13px" onclick="openEvt('opp_save')">🧤 Saves</button>
         <button class="btn" style="margin-top:0;height:38px;font-size:13px" onclick="openEvt('opp_corner')">Corner</button>
         <button class="btn" style="margin-top:0;height:38px;font-size:13px" onclick="openEvt('opp_offside')">Offside</button>
         <button class="btn" style="margin-top:0;height:38px;font-size:13px" onclick="openEvt('opp_direct')">Direct Kick</button>
@@ -898,7 +899,7 @@ const P_C = [
 const OP_C = [
   {k:'goals',l:'Goals'},{k:'assists',l:'Assists'},
   {k:'shots',l:'Shots'},{k:'sot',l:'Shots on target'},
-  {k:'corners',l:'Corners'},{k:'fouls',l:'Fouls'},
+  {k:'saves',l:'Saves (GK)'},{k:'corners',l:'Corners'},{k:'fouls',l:'Fouls'},
   {k:'offsides',l:'Offsides'},
   {k:'yellow',l:'Yellow cards'},{k:'red',l:'Red cards'},
   {k:'pk',l:'Penalty kicks'},
@@ -1112,6 +1113,7 @@ const EVT_META = {
   opp_indirect:  {label:'Opp Indirect Kick', icon:'↪️', team:'opp', statKey:'ik',   isGoal:false},
   opp_shot:      {label:'Opp Shot',        icon:'👟', team:'opp', statKey:'shots',  isGoal:false},
   opp_sot:       {label:'Opp Shot on Target', icon:'🎯', team:'opp', statKey:'sot', isGoal:false},
+  opp_save:      {label:'Opp Save', icon:'🧤', team:'opp', statKey:'saves', isGoal:false},
   opp_corner:    {label:'Opp Corner',      icon:'🚩', team:'opp', statKey:'corners',isGoal:false},
   opp_offside:   {label:'Opp Offside',     icon:'🚫', team:'opp', statKey:'offsides',isGoal:false},
   opp_foul:      {label:'Opp Foul',        icon:'⚠️', team:'opp', statKey:'fouls',  isGoal:false, extra:'foul'},
@@ -1209,7 +1211,7 @@ function saveEvt() {
       const existing = oppPlayers.find(p => p.name===playerName && p.num==playerNum);
       if (!existing) {
         playerId = 'op'+Date.now();
-        oppPlayers.push({id:playerId, num:playerNum, name:playerName, goals:0, assists:0, shots:0, sot:0, corners:0, fouls:0, offsides:0, yellow:0, red:0, pk:0, og:0, dk:0, ik:0});
+        oppPlayers.push({id:playerId, num:playerNum, name:playerName, goals:0, assists:0, shots:0, sot:0, saves:0, corners:0, fouls:0, offsides:0, yellow:0, red:0, pk:0, og:0, dk:0, ik:0});
       } else { playerId = existing.id; }
     }
     const op = oppPlayers.find(p => p.id === playerId);
@@ -1288,7 +1290,7 @@ function openSheet_oppPlayer(id) {
     if (op) {
       document.getElementById('op-num').value = op.num||'';
       document.getElementById('op-name').value = op.name||'';
-      editingOpStats = {goals:op.goals||0,assists:op.assists||0,shots:op.shots||0,sot:op.sot||0,corners:op.corners||0,fouls:op.fouls||0,offsides:op.offsides||0,yellow:op.yellow||0,red:op.red||0,pk:op.pk||0,og:op.og||0,dk:op.dk||0,ik:op.ik||0};
+      editingOpStats = {goals:op.goals||0,assists:op.assists||0,shots:op.shots||0,sot:op.sot||0,saves:op.saves||0,corners:op.corners||0,fouls:op.fouls||0,offsides:op.offsides||0,yellow:op.yellow||0,red:op.red||0,pk:op.pk||0,og:op.og||0,dk:op.dk||0,ik:op.ik||0};
       document.getElementById('opp-player-title').textContent = 'Edit opponent player';
     }
   } else {
@@ -1342,6 +1344,7 @@ function renderOppPlayerList() {
     const badges = [
       p.goals ? `<span class="mini-badge goal">G:${p.goals}</span>` : '',
       p.assists ? `<span class="mini-badge assist">A:${p.assists}</span>` : '',
+      p.saves ? `<span class="mini-badge">Sv:${p.saves}</span>` : '',
       p.yellow ? `<span class="mini-badge yellow">Y:${p.yellow}</span>` : '',
       p.red ? `<span class="mini-badge red">R:${p.red}</span>` : '',
       p.pk ? `<span class="mini-badge">PK:${p.pk}</span>` : '',
@@ -1511,7 +1514,7 @@ function addImported() {
     const name = r.name.trim(), num = String(r.num || '').trim();
     const dupe = oppPlayers.some(p => String(p.num || '') === num && (p.name || '').trim().toLowerCase() === name.toLowerCase());
     if (dupe) { skipped++; return; }
-    oppPlayers.push({id:'op' + Date.now() + '_' + i, num, name, goals:0, assists:0, shots:0, sot:0, corners:0, fouls:0, offsides:0, yellow:0, red:0, pk:0, og:0, dk:0, ik:0});
+    oppPlayers.push({id:'op' + Date.now() + '_' + i, num, name, goals:0, assists:0, shots:0, sot:0, saves:0, corners:0, fouls:0, offsides:0, yellow:0, red:0, pk:0, og:0, dk:0, ik:0});
     added++;
   });
   renderOppPlayerList();
@@ -1572,9 +1575,9 @@ function mruTeamTotals() {
   return t;
 }
 function oppTeamTotals() {
-  const t = {oShots:0,oSot:0,oCorners:0,oFouls:0,oYellow:0,oRed:0,oOffsides:0,oPk:0,oOg:0,oDk:0,oIk:0};
+  const t = {oShots:0,oSot:0,oSaves:0,oCorners:0,oFouls:0,oYellow:0,oRed:0,oOffsides:0,oPk:0,oOg:0,oDk:0,oIk:0};
   oppPlayers.forEach(p => {
-    t.oShots+=(p.shots||0); t.oSot+=(p.sot||0); t.oCorners+=(p.corners||0);
+    t.oShots+=(p.shots||0); t.oSot+=(p.sot||0); t.oSaves+=(p.saves||0); t.oCorners+=(p.corners||0);
     t.oFouls+=(p.fouls||0); t.oYellow+=(p.yellow||0); t.oRed+=(p.red||0);
     t.oOffsides+=(p.offsides||0); t.oPk+=(p.pk||0);
     t.oOg+=(p.og||0); t.oDk+=(p.dk||0); t.oIk+=(p.ik||0);
@@ -1767,10 +1770,11 @@ function showGameDetail(id) {
     return `<div class="evt-item"><span class="evt-time">${e.minute}' <small>(${periodLabel(e.half||1)})</small></span><span class="evt-icon">${e.icon}</span><span class="evt-info">${esc(e.label)}${who}${evtDetailHtml(e)}</span></div>`;
   }).join('');
 
-  const oppRows = (g.oppPlayers||[]).filter(p=>p.goals||p.assists||p.yellow||p.red||p.og||p.dk||p.ik).map(p => {
+  const oppRows = (g.oppPlayers||[]).filter(p=>p.saves||p.goals||p.assists||p.yellow||p.red||p.og||p.dk||p.ik).map(p => {
     const badges = [
       p.goals?`<span class="mini-badge goal">G:${p.goals}</span>`:'',
       p.assists?`<span class="mini-badge assist">A:${p.assists}</span>`:'',
+      p.saves?`<span class="mini-badge">Sv:${p.saves}</span>`:'',
       p.yellow?`<span class="mini-badge yellow">Y:${p.yellow}</span>`:'',
       p.red?`<span class="mini-badge red">R:${p.red}</span>`:'',
       p.og?`<span class="mini-badge">OG:${p.og}</span>`:'',
@@ -1795,7 +1799,7 @@ function showGameDetail(id) {
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;font-size:12px">
       ${[['Shots',g.mru.shots||0,g.mru.oShots||0],['SOT',g.mru.sot||0,g.mru.oSot||0],
-         ['Saves',g.mru.saves||0,'—'],['Corners',g.mru.corners||0,g.mru.oCorners||0],
+         ['Saves',g.mru.saves||0,g.mru.oSaves||0],['Corners',g.mru.corners||0,g.mru.oCorners||0],
          ['Fouls',g.mru.fouls||0,g.mru.oFouls||0],['Yellow',g.mru.yellow||0,g.mru.oYellow||0],
          ['PK',g.mru.pk||0,g.mru.oPk||0],
          ['Own goals',g.mru.og||0,g.mru.oOg||0],['Direct kicks',g.mru.dk||0,g.mru.oDk||0],
@@ -1835,7 +1839,7 @@ function renderAllTime() {
     ['Goal diff',(gf-ga>0?'+':'')+(gf-ga)],['Goals/game',(gf/n).toFixed(1)],
     ['Clean sheets',state.games.filter(g=>g.goalsAgainst===0).length],
     ['Shots',shots],['Shot acc.',shots?Math.round(sot/shots*100)+'%':'—'],
-    ['Saves',sum('saves')],['Corners',sum('corners')],
+    ['Saves',sum('saves')],['Opponent saves',sum('oSaves')],['Corners',sum('corners')],
     ['Fouls',sum('fouls')],['Yellow cards',sum('yellow')],['Penalty kicks',sum('pk')],
     ['Own goals',sum('og')],['Direct kicks',sum('dk')],['Indirect kicks',sum('ik')],
   ].map(([l,v])=>`<div class="sc"><div class="lbl">${l}</div><div class="val">${v}</div></div>`).join('');
@@ -1864,13 +1868,13 @@ function renderAllTime() {
 // ── Excel export ──────────────────────────────────────────────────────────────
 const G_HDR=['Date','Season','Team','Opponent','Location','Goals For','Goals Against','Result',
   'Team Shots','Team SOT','Team Saves','Team Corners','Team Fouls','Team Yellow','Team Red','Team Offsides','Team PK',
-  'Opp Shots','Opp SOT','Opp Corners','Opp Fouls','Opp Yellow','Opp Red','Opp Offsides','Opp PK',
+  'Opp Shots','Opp SOT','Opp Saves','Opp Corners','Opp Fouls','Opp Yellow','Opp Red','Opp Offsides','Opp PK',
   'Team Own Goals','Opp Own Goals','Team Direct Kicks','Team Indirect Kicks','Opp Direct Kicks','Opp Indirect Kicks','Notes'];
 function gRow(g){
   const m=g.mru||{};
   return[g.date,g.season||'',g.teamName||teamName(),g.opponent,g.location,g.goalsFor,g.goalsAgainst,g.result,
     m.shots||0,m.sot||0,m.saves||0,m.corners||0,m.fouls||0,m.yellow||0,m.red||0,m.offsides||0,m.pk||0,
-    m.oShots||0,m.oSot||0,m.oCorners||0,m.oFouls||0,m.oYellow||0,m.oRed||0,m.oOffsides||0,m.oPk||0,
+    m.oShots||0,m.oSot||0,m.oSaves||0,m.oCorners||0,m.oFouls||0,m.oYellow||0,m.oRed||0,m.oOffsides||0,m.oPk||0,
     m.og||0,m.oOg||0,m.dk||0,m.ik||0,m.oDk||0,m.oIk||0,g.notes||''];
 }
 function mkWb(rows,hdr,name){
@@ -1897,8 +1901,8 @@ function expLast(){
   if(prows.length){const ws2=XLSX.utils.aoa_to_sheet([P_HDR,...prows]);ws2['!cols']=P_HDR.map(()=>({wch:12}));XLSX.utils.book_append_sheet(wb,ws2,'Team Players');}
   // opp players sheet
   if(g.oppPlayers&&g.oppPlayers.length){
-    const OP_HDR=['#','Name','Goals','Assists','Shots','SOT','Corners','Fouls','Offsides','Yellow','Red','PK','Own Goals','Direct Kicks','Indirect Kicks'];
-    const oprows=g.oppPlayers.map(p=>[p.num||'',p.name||'',p.goals||0,p.assists||0,p.shots||0,p.sot||0,p.corners||0,p.fouls||0,p.offsides||0,p.yellow||0,p.red||0,p.pk||0,p.og||0,p.dk||0,p.ik||0]);
+    const OP_HDR=['#','Name','Goals','Assists','Shots','SOT','Saves','Corners','Fouls','Offsides','Yellow','Red','PK','Own Goals','Direct Kicks','Indirect Kicks'];
+    const oprows=g.oppPlayers.map(p=>[p.num||'',p.name||'',p.goals||0,p.assists||0,p.shots||0,p.sot||0,p.saves||0,p.corners||0,p.fouls||0,p.offsides||0,p.yellow||0,p.red||0,p.pk||0,p.og||0,p.dk||0,p.ik||0]);
     const ws3=XLSX.utils.aoa_to_sheet([OP_HDR,...oprows]);ws3['!cols']=OP_HDR.map(()=>({wch:12}));
     XLSX.utils.book_append_sheet(wb,ws3,'Opp Players');
   }
@@ -1947,7 +1951,7 @@ function expSummary(){
     ['Goals per game',(gf/n).toFixed(2)],['Clean sheets',state.games.filter(g=>g.goalsAgainst===0).length],
     ['Shots',shots],['Shots on target',sot],
     ['Shot accuracy',shots?(sot/shots*100).toFixed(1)+'%':'—'],
-    ['Saves',sum('saves')],['Corners',sum('corners')],['Fouls',sum('fouls')],
+    ['Saves',sum('saves')],['Opponent saves',sum('oSaves')],['Corners',sum('corners')],['Fouls',sum('fouls')],
     ['Yellow cards',sum('yellow')],['Red cards',sum('red')],['Penalty kicks',sum('pk')],
     ['Own goals (by Team)',sum('og')],['Own goals (by opponents)',sum('oOg')],
     ['Direct kicks',sum('dk')],['Indirect kicks',sum('ik')],
